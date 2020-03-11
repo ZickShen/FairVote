@@ -10,6 +10,8 @@ authors = ["ZickShen <zick-hd@foxmail.com>"]
 edition = "2018"
 
 [dependencies]
+actix-web = "2.0"
+actix-rt = "1.0"
 
 [[bin]]
 name = "server"
