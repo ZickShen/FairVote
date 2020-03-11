@@ -1,0 +1,16 @@
+[workspace]
+members = [
+    "server"
+]
+
+[package]
+name = "FairVote"
+version = "0.1.0"
+authors = ["ZickShen <zick-hd@foxmail.com>"]
+edition = "2018"
+
+[dependencies]
+
+[[bin]]
+name = "server"
+path = "server/src/main.rs"
