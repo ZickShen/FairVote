@@ -15,6 +15,25 @@ pub struct UpdatePassword {
     new_password: String,
 }
 
+#[derive(Debug, Serialize, Deserialize)]
+pub struct PreSignRequest {
+    a: String,
+    alpha: String,
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct SignRequest {
+    a: String,
+    alpha: String,
+    beta: String,
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct SignResponse {
+    beta_invert: String,
+    t: String,
+}
+
 pub fn update_password(
     auth_data: web::Json<UpdatePassword>,
     id: Identity,
