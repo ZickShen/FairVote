@@ -9,6 +9,13 @@ pub type Pool = r2d2::Pool<ConnectionManager<SqliteConnection>>;
 pub struct User {
     pub username: String,
     pub password: String,
+    pub has_voted: bool,
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct RegisterUser{
+    pub username: String,
+    pub password: String,
 }
 
 #[derive(Debug, Serialize, Deserialize)]
@@ -22,4 +29,29 @@ impl From<User> for SlimUser {
             username: user.username,
         }
     }
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct PreSignRequest {
+    pub a: String,
+    pub alpha: String,
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct UserInSigning {
+    pub username: String,
+    pub x: String,
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct SignRequest {
+    pub a: String,
+    pub alpha: String,
+    pub beta: String,
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct SignResponse {
+    pubbeta_invert: String,
+    pubt: String,
 }

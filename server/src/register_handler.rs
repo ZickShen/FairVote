@@ -3,13 +3,13 @@ use actix_web::{error::BlockingError, web, HttpResponse};
 use diesel::prelude::*;
 
 use crate::errors::ServiceError;
-use crate::models::{Pool, SlimUser, User};
+use crate::models::{RegisterUser, Pool, SlimUser, User};
 use crate::utils::hash;
 
 use futures::Future;
 
 pub fn create_user(
-    auth_data: web::Json<User>,
+    auth_data: web::Json<RegisterUser>,
     id: Identity,
     pool: web::Data<Pool>,
 ) -> impl Future<Item = HttpResponse, Error = ServiceError> {
@@ -29,7 +29,7 @@ pub fn create_user(
 }
 
 /// Diesel query
-fn query(auth_data: User, pool: web::Data<Pool>) -> Result<SlimUser, ServiceError> {
+fn query(auth_data: RegisterUser, pool: web::Data<Pool>) -> Result<SlimUser, ServiceError> {
     use crate::schema::users::dsl::{username, users};
     let conn: &SqliteConnection = &pool.get().unwrap();
     let items = users
@@ -40,6 +40,7 @@ fn query(auth_data: User, pool: web::Data<Pool>) -> Result<SlimUser, ServiceErro
         let new_user = User {
             username: auth_data.username,
             password,
+            has_voted: false,
         };
         diesel::insert_into(users).values(&new_user).execute(conn)?;
 
