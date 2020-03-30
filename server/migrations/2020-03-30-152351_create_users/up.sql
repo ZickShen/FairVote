@@ -1,0 +1,5 @@
+CREATE TABLE users (
+    username VARCHAR NOT NULL PRIMARY KEY,
+    password VARCHAR NOT NULL,
+    has_voted BOOLEAN NOT NULL DEFAULT 'f'
+)
