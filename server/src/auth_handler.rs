@@ -3,7 +3,7 @@ use actix_web::{error::BlockingError, web, HttpResponse};
 use diesel::prelude::*;
 
 use crate::errors::ServiceError;
-use crate::models::{Pool, SlimUser, User};
+use crate::models::{Pool, SlimUser, User, PreSignRequest, UserInSigning};
 use crate::utils::{hash, verify};
 use futures::future::err;
 use futures::future::Either;
@@ -13,25 +13,6 @@ use futures::Future;
 pub struct UpdatePassword {
     old_password: String,
     new_password: String,
-}
-
-#[derive(Debug, Serialize, Deserialize)]
-pub struct PreSignRequest {
-    a: String,
-    alpha: String,
-}
-
-#[derive(Debug, Serialize, Deserialize)]
-pub struct SignRequest {
-    a: String,
-    alpha: String,
-    beta: String,
-}
-
-#[derive(Debug, Serialize, Deserialize)]
-pub struct SignResponse {
-    beta_invert: String,
-    t: String,
 }
 
 pub fn update_password(
@@ -95,6 +76,23 @@ pub fn login(
             },
         },
     )
+}
+
+pub fn pre_request_sign(
+    auth_data: web::Json<PreSignRequest>,
+    id: Identity,
+) -> Result<HttpResponse, ServiceError> {
+    match id.identity().as_ref() {
+        Some(identity) => {
+            let user: SlimUser = serde_json::from_str(&identity).unwrap();
+            let user = UserInSigning {
+                username: user.username,
+                x: "0".to_string(),
+            };
+            Ok(HttpResponse::Ok().body(serde_json::to_string(&user).unwrap()))
+        }
+        _ => Result::Err(ServiceError::Unauthorized)
+    }
 }
 
 /// Diesel query

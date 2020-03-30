@@ -73,6 +73,9 @@ fn main() -> std::io::Result<()> {
                                 web::resource("/special_ping").to(auth_handler::special_ping),
                             )
                             .service(
+                                web::resource("/pre_sign").to(auth_handler::pre_request_sign),
+                            )
+                            .service(
                                 web::resource("/login")
                                     .route(web::post().to_async(auth_handler::login)),
                             )
