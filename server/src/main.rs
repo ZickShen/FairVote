@@ -1,9 +1,7 @@
-extern crate actix_web;
 #[macro_use]
 extern crate diesel;
 #[macro_use]
 extern crate serde_derive;
-extern crate easy_password;
 
 use actix_cors::Cors;
 use actix_identity::{CookieIdentityPolicy, IdentityService};
@@ -19,9 +17,14 @@ mod models;
 mod register_handler;
 mod schema;
 mod utils;
+mod keys;
 
 fn ping(_req: HttpRequest) -> impl Responder {
     HttpResponse::Ok().body("pong")
+}
+
+fn public_key(_req: HttpRequest) -> impl Responder {
+    HttpResponse::Ok().body(format!("n: {}\ne: {}", &*keys::PUBLIC_KEY.n(), &*keys::PUBLIC_KEY.e()))
 }
 
 fn main() -> std::io::Result<()> {
@@ -60,6 +63,7 @@ fn main() -> std::io::Result<()> {
                     .max_age(3600),
             )
             .service(web::resource("/ping").to(ping))
+            .service(web::resource("/public_key").to(public_key))
             .service(
                 web::scope("/api")
                     .service(web::resource("/ping").to(ping))
