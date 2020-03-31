@@ -46,6 +46,7 @@ fn query(auth_data: RegisterUser, pool: web::Data<Pool>) -> Result<SlimUser, Ser
 
         let slim_user = SlimUser {
             username: new_user.username,
+            x: "not set".to_string(),
         };
         return Ok(slim_user);
     }

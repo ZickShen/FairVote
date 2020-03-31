@@ -21,12 +21,14 @@ pub struct RegisterUser{
 #[derive(Debug, Serialize, Deserialize)]
 pub struct SlimUser {
     pub username: String,
+    pub x: String
 }
 
 impl From<User> for SlimUser {
     fn from(user: User) -> Self {
         SlimUser {
             username: user.username,
+            x: "not set".to_string(),
         }
     }
 }
@@ -37,11 +39,6 @@ pub struct PreSignRequest {
     pub alpha: String,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
-pub struct UserInSigning {
-    pub username: String,
-    pub x: String,
-}
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct SignRequest {

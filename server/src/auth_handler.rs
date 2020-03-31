@@ -3,7 +3,7 @@ use actix_web::{error::BlockingError, web, HttpResponse};
 use diesel::prelude::*;
 
 use crate::errors::ServiceError;
-use crate::models::{Pool, SlimUser, User, PreSignRequest, UserInSigning};
+use crate::models::{Pool, SlimUser, User, PreSignRequest};
 use crate::utils::{hash, verify};
 use futures::future::err;
 use futures::future::Either;
@@ -85,7 +85,7 @@ pub fn pre_request_sign(
     match id.identity().as_ref() {
         Some(identity) => {
             let user: SlimUser = serde_json::from_str(&identity).unwrap();
-            let user = UserInSigning {
+            let user = SlimUser {
                 username: user.username,
                 x: "0".to_string(),
             };
@@ -108,6 +108,7 @@ fn query(auth_data: User, pool: web::Data<Pool>) -> Result<SlimUser, ServiceErro
             if matching {
                 let slim_user = SlimUser {
                     username: user.username,
+                    x: "not set".to_string(),
                 };
                 return Ok(slim_user);
             }
@@ -136,6 +137,7 @@ fn query_update(
                     .execute(conn)?;
                 let slim_user = SlimUser {
                     username: user.username,
+                    x: "not set".to_string(),
                 };
                 return Ok(slim_user);
             }
