@@ -8,7 +8,9 @@ use diesel::prelude::*;
 use std::str::FromStr;
 
 use crate::errors::ServiceError;
-use crate::models::{Pool, User, SlimUser, PreSignRequest, SignRequest, SignResponse};
+use crate::models::{
+  Pool, User, SlimUser, PreSignRequest, SignRequest, SignResponse, Signature
+};
 use crate::keys::{PUBLIC_KEY, PRIVATE_KEY};
 use rand::thread_rng;
 
@@ -102,4 +104,17 @@ fn query_sign(
     }
   }
   Err(ServiceError::BadRequest("Username not exist !".into()))
+}
+
+pub fn verify(signature: web::Json<Signature>) -> Result<HttpResponse, ServiceError> {
+  let message = signature.m.clone();
+  let signature = pbs_rsa::Signature {
+      a: signature.a.clone(),
+      c: BigUint::from_str(&signature.c).unwrap(),
+      s: BigUint::from_str(&signature.s).unwrap(),
+  };
+  match PUBLIC_KEY.verify(message, &signature) {
+    Ok(_) => Ok(HttpResponse::Ok().body("Signed Message")),
+    Err(_) => Ok(HttpResponse::Ok().body("Unsigned Message"))
+  }
 }

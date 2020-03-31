@@ -2,6 +2,7 @@
 extern crate diesel;
 #[macro_use]
 extern crate serde_derive;
+extern crate num_bigint_dig as num_bigint;
 
 use actix_cors::Cors;
 use actix_identity::{CookieIdentityPolicy, IdentityService};
@@ -10,7 +11,6 @@ use actix_web::{
 };
 use diesel::prelude::*;
 use diesel::r2d2::{self, ConnectionManager};
-extern crate num_bigint_dig as num_bigint;
 
 mod auth_handler;
 mod errors;
@@ -66,6 +66,8 @@ fn main() -> std::io::Result<()> {
             )
             .service(web::resource("/ping").to(ping))
             .service(web::resource("/public_key").to(public_key))
+            .service(web::resource("/verify")
+                            .route(web::post().to(signature::verify)))
             .service(
                 web::scope("/api")
                     .service(web::resource("/ping").to(ping))

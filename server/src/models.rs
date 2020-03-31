@@ -62,3 +62,11 @@ pub struct SignResponse {
     pub beta_invert: String,
     pub t: String,
 }
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct Signature {
+    pub a: String,
+    pub m: String,
+    pub c: String,
+    pub s: String,
+}
