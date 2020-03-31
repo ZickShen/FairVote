@@ -19,7 +19,7 @@ mod register_handler;
 mod schema;
 mod utils;
 mod keys;
-mod sign;
+mod signature;
 
 fn ping(_req: HttpRequest) -> impl Responder {
     HttpResponse::Ok().body("pong")
@@ -80,11 +80,11 @@ fn main() -> std::io::Result<()> {
                             )
                             .service(
                                 web::resource("/pre_sign")
-                                    .route(web::post().to(sign::pre_request_sign)),
+                                    .route(web::post().to(signature::pre_request_sign)),
                             )
                             .service(
-                                web::resource("/sign")
-                                    .route(web::post().to_async(sign::request_sign)),
+                                web::resource("/signature")
+                                    .route(web::post().to_async(signature::request_sign)),
                             )
                             .service(
                                 web::resource("/login")
