@@ -12,6 +12,16 @@ pub struct User {
     pub has_voted: bool,
 }
 
+impl From<RegisterUser> for User {
+    fn from(register_user: RegisterUser) -> Self {
+        User {
+            username: register_user.username,
+            password: register_user.password,
+            has_voted: true,
+        }
+    }
+}
+
 #[derive(Debug, Serialize, Deserialize)]
 pub struct RegisterUser{
     pub username: String,
@@ -49,6 +59,6 @@ pub struct SignRequest {
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct SignResponse {
-    pubbeta_invert: String,
-    pubt: String,
+    pub beta_invert: String,
+    pub t: String,
 }

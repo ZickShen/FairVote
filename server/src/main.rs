@@ -10,6 +10,7 @@ use actix_web::{
 };
 use diesel::prelude::*;
 use diesel::r2d2::{self, ConnectionManager};
+extern crate num_bigint_dig as num_bigint;
 
 mod auth_handler;
 mod errors;
@@ -18,6 +19,7 @@ mod register_handler;
 mod schema;
 mod utils;
 mod keys;
+mod sign;
 
 fn ping(_req: HttpRequest) -> impl Responder {
     HttpResponse::Ok().body("pong")
@@ -77,7 +79,12 @@ fn main() -> std::io::Result<()> {
                                 web::resource("/special_ping").to(auth_handler::special_ping),
                             )
                             .service(
-                                web::resource("/pre_sign").to(auth_handler::pre_request_sign),
+                                web::resource("/pre_sign")
+                                    .route(web::post().to(sign::pre_request_sign)),
+                            )
+                            .service(
+                                web::resource("/sign")
+                                    .route(web::post().to_async(sign::request_sign)),
                             )
                             .service(
                                 web::resource("/login")

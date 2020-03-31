@@ -3,7 +3,7 @@ use actix_web::{error::BlockingError, web, HttpResponse};
 use diesel::prelude::*;
 
 use crate::errors::ServiceError;
-use crate::models::{Pool, SlimUser, User, PreSignRequest};
+use crate::models::{Pool, SlimUser, User, RegisterUser};
 use crate::utils::{hash, verify};
 use futures::future::err;
 use futures::future::Either;
@@ -59,11 +59,12 @@ pub fn special_ping(id: Identity) -> Result<HttpResponse, ServiceError> {
 }
 
 pub fn login(
-    auth_data: web::Json<User>,
+    auth_data: web::Json<RegisterUser>,
     id: Identity,
     pool: web::Data<Pool>,
 ) -> impl Future<Item = HttpResponse, Error = ServiceError> {
-    web::block(move || query(auth_data.into_inner(), pool)).then(
+    let auth_data = User::from(auth_data.into_inner());
+    web::block(move || query(auth_data, pool)).then(
         move |res: Result<SlimUser, BlockingError<ServiceError>>| match res {
             Ok(user) => {
                 let user_string = serde_json::to_string(&user).unwrap();
@@ -76,23 +77,6 @@ pub fn login(
             },
         },
     )
-}
-
-pub fn pre_request_sign(
-    auth_data: web::Json<PreSignRequest>,
-    id: Identity,
-) -> Result<HttpResponse, ServiceError> {
-    match id.identity().as_ref() {
-        Some(identity) => {
-            let user: SlimUser = serde_json::from_str(&identity).unwrap();
-            let user = SlimUser {
-                username: user.username,
-                x: "0".to_string(),
-            };
-            Ok(HttpResponse::Ok().body(serde_json::to_string(&user).unwrap()))
-        }
-        _ => Result::Err(ServiceError::Unauthorized)
-    }
 }
 
 /// Diesel query

@@ -3,7 +3,6 @@ use easy_password::bcrypt::{hash_password, verify_password};
 
 lazy_static::lazy_static! {
   pub static ref SECRET_KEY: String = std::env::var("SECRET_KEY").unwrap();
-  pub static ref BITS: String = std::env::var("KEY_SIZE").unwrap();
 }
 
 // WARNING THIS IS ONLY FOR DEMO PLEASE DO MORE RESEARCH FOR PRODUCTION USE

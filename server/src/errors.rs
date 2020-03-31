@@ -13,6 +13,15 @@ pub enum ServiceError {
 
     #[display(fmt = "Unauthorized")]
     Unauthorized,
+
+    #[display(fmt = "Unacceptable Expire Date")]
+    UnacceptableDate,
+
+    #[display(fmt = "Already Signed")]
+    Signed,
+
+    #[display(fmt = "Presign Not Requested")]
+    NoPresign,
 }
 
 // impl ResponseError trait allows to convert our errors into http responses with appropriate data
@@ -24,6 +33,9 @@ impl ResponseError for ServiceError {
             }
             ServiceError::BadRequest(ref message) => HttpResponse::BadRequest().json(message),
             ServiceError::Unauthorized => HttpResponse::Unauthorized().json("Unauthorized"),
+            ServiceError::UnacceptableDate => HttpResponse::NotAcceptable().json("Unacceptable Expire Date"),
+            ServiceError::Signed => HttpResponse::NotAcceptable().json("Already Signed"),
+            ServiceError::NoPresign => HttpResponse::NotAcceptable().json("Presign Not Requested"),
         }
     }
 }
