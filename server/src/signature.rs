@@ -112,7 +112,7 @@ fn query_sign(
   Err(ServiceError::BadRequest("Username not exist !".into()))
 }
 
-pub fn verify(signature: web::Json<Signature>) -> Result<HttpResponse, ServiceError> {
+pub fn verify(signature: web::Json<Signature>) -> impl Responder {
   let message = signature.m.clone();
   let signature = pbs_rsa::Signature {
       a: signature.a.clone(),
@@ -120,8 +120,8 @@ pub fn verify(signature: web::Json<Signature>) -> Result<HttpResponse, ServiceEr
       s: BigUint::from_str(&signature.s).unwrap(),
   };
   match PUBLIC_KEY.verify(message, &signature) {
-    Ok(_) => Ok(HttpResponse::Ok().body("Signed Message")),
-    Err(_) => Ok(HttpResponse::Ok().body("Unsigned Message"))
+    Ok(_) => HttpResponse::Ok().body("Signed Message"),
+    Err(_) => HttpResponse::Ok().body("Unsigned Message")
   }
 }
 
