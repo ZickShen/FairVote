@@ -64,6 +64,17 @@ pub struct SignResponse {
 }
 
 #[derive(Debug, Serialize, Deserialize)]
+pub struct PublicKeyResponse {
+    pub n: String,
+    pub e: String,
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct PreSignResponse {
+    pub x: String,
+}
+
+#[derive(Debug, Serialize, Deserialize)]
 pub struct Signature {
     pub a: String,
     pub m: String,

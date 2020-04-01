@@ -25,10 +25,6 @@ fn ping(_req: HttpRequest) -> impl Responder {
     HttpResponse::Ok().body("pong")
 }
 
-fn public_key(_req: HttpRequest) -> impl Responder {
-    HttpResponse::Ok().body(format!("n: {}\ne: {}", &*keys::PUBLIC_KEY.n(), &*keys::PUBLIC_KEY.e()))
-}
-
 fn main() -> std::io::Result<()> {
     dotenv::dotenv().ok();
     std::env::set_var("RUST_LOG", "actix_web=info,actix_server=info");
@@ -41,7 +37,7 @@ fn main() -> std::io::Result<()> {
     let pool: models::Pool = r2d2::Pool::builder()
         .build(manager)
         .expect("Failed to create pool.");
-    let domain: String = std::env::var("DOMAIN").unwrap_or_else(|_| "localhost".to_string());
+    let domain: String = std::env::var("DOMAIN").unwrap();
 
     HttpServer::new(move || {
         App::new()
@@ -65,7 +61,7 @@ fn main() -> std::io::Result<()> {
                     .max_age(3600),
             )
             .service(web::resource("/ping").to(ping))
-            .service(web::resource("/public_key").to(public_key))
+            .service(web::resource("/public_key").to(signature::public_key))
             .service(web::resource("/verify")
                             .route(web::post().to(signature::verify)))
             .service(
@@ -85,7 +81,7 @@ fn main() -> std::io::Result<()> {
                                     .route(web::post().to(signature::pre_request_sign)),
                             )
                             .service(
-                                web::resource("/signature")
+                                web::resource("/sign")
                                     .route(web::post().to_async(signature::request_sign)),
                             )
                             .service(

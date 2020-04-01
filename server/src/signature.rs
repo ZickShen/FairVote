@@ -1,5 +1,7 @@
 use actix_identity::Identity;
-use actix_web::{error::BlockingError, web, HttpResponse};
+use actix_web::{
+  error::BlockingError, web, HttpResponse, Responder, HttpRequest
+};
 use num_bigint::{RandBigInt, BigUint};
 use futures::future::err;
 use futures::future::Either;
@@ -9,7 +11,8 @@ use std::str::FromStr;
 
 use crate::errors::ServiceError;
 use crate::models::{
-  Pool, User, SlimUser, PreSignRequest, SignRequest, SignResponse, Signature
+  Pool, User, SlimUser, PreSignRequest, SignRequest, SignResponse, Signature,
+  PreSignResponse, PublicKeyResponse
 };
 use crate::keys::{PUBLIC_KEY, PRIVATE_KEY};
 use rand::thread_rng;
@@ -31,7 +34,10 @@ pub fn pre_request_sign(
           };
           id.forget();
           id.remember(serde_json::to_string(&user).unwrap());
-          Ok(HttpResponse::Ok().body(format!("x: {}", user.x)))
+          let x = PreSignResponse {
+            x: user.x,
+          };
+          Ok(HttpResponse::Ok().body(serde_json::to_string(&x).unwrap()))
       }
       _ => Result::Err(ServiceError::Unauthorized)
   }
@@ -117,4 +123,14 @@ pub fn verify(signature: web::Json<Signature>) -> Result<HttpResponse, ServiceEr
     Ok(_) => Ok(HttpResponse::Ok().body("Signed Message")),
     Err(_) => Ok(HttpResponse::Ok().body("Unsigned Message"))
   }
+}
+
+pub fn public_key(_req: HttpRequest) -> impl Responder {
+  let n = &*PUBLIC_KEY.n();
+  let e = &*PUBLIC_KEY.e();
+  let pubkey = PublicKeyResponse{
+    n: n.to_string(),
+    e: e.to_string(),
+  };
+  HttpResponse::Ok().body(serde_json::to_string(&pubkey).unwrap())
 }
