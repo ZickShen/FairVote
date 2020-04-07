@@ -20,6 +20,7 @@ mod schema;
 mod utils;
 mod keys;
 mod signature;
+mod ballot;
 
 fn ping(_req: HttpRequest) -> impl Responder {
     HttpResponse::Ok().body("pong")
@@ -31,6 +32,7 @@ fn main() -> std::io::Result<()> {
     env_logger::init();
     let database_url = std::env::var("DATABASE_URL").expect("DATABASE_URL must be set");
     let address: String = std::env::var("ADDRESS").unwrap_or_else(|_| "http://localhost".to_string());
+    println!("{:?}", &*ballot::BALLOT);
 
     // create db connection pool
     let manager = ConnectionManager::<SqliteConnection>::new(database_url);

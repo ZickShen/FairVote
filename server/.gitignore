@@ -4,3 +4,6 @@
 *.iml
 .env
 *.db
+*.toml
+!Cargo.toml
+!diesel.toml

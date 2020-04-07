@@ -81,3 +81,16 @@ pub struct Signature {
     pub c: String,
     pub s: String,
 }
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct Ballot {
+    title: String,
+    multiple: bool,
+    candidates: Candidates,
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct Candidates {
+    number: usize,
+    candidates: Vec<String>,
+}
