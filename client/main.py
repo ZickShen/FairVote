@@ -4,20 +4,57 @@ from Crypto.Util.number import bytes_to_long, getPrime
 import Crypto.Random.random as random
 from hashlib import sha256
 from gmpy2 import gcd, invert
-from json import loads
+from json import loads, dumps
 import uuid
+from PyInquirer import prompt, print_json
 
 def main():
     session = requests.Session()
+    questions = [
+        {
+            'type': 'input',
+            'name': 'address',
+            'message': 'Where is server?',
+        }
+    ]
+    address = prompt(questions)["address"]
 
-    response = session.get('http://192.168.16.128:8000/public_key')
+    response = session.get('{}/ballot'.format(address))
+    ballot = loads(response.text)
+    print(ballot)
+    m = b"test message"
+    if ballot["multiple"]:
+        questions = [
+            {
+                'type': 'checkbox',
+                'name': 'candidates',
+                'message': 'vote candidates',
+                'choices': [
+                    (lambda x: {'name': x})(x) for x in ballot['candidates']['candidates']
+                ],
+            }
+        ]
+    else:
+        questions = [
+            {
+                'type': 'list',
+                'name': 'candidates',
+                'message': 'choose who you want to vote',
+                'choices': [
+                    x for x in ballot['candidates']['candidates']
+                ],
+            },
+        ]
+    candidates = prompt(questions)
+    m = dumps(candidates).encode()
+
+    response = session.get('{}/public_key'.format(address))
     pubkey = loads(response.text)
     N = int(pubkey["n"])
     e = int(pubkey["e"])
-    response = session.post('http://192.168.16.128:8000/api/auth/register', json={"username": str(uuid.uuid1()), "password": "1testt"})
+    response = session.post('{}/api/auth/register'.format(address), json={"username": str(uuid.uuid1()), "password": "1testt"})
 
     a = b"2020-11-28"
-    m = b"test message"
     r = N
     while gcd(r, N) != 1 :
         r = random.randint(1, N)
@@ -30,10 +67,10 @@ def main():
     alpha = (pow(((r**3)*r_p),e, N) # (r^3r')^e
             * bytes_to_long(sha256(m).digest()) #h(m) 
             * (u**2 + 1)) % N
-    response = session.post('http://192.168.16.128:8000/api/auth/pre_sign', json={"a": "2020-11-28", "alpha": str(alpha)})
+    response = session.post('{}/api/auth/pre_sign'.format(address), json={"a": "2020-11-28", "alpha": str(alpha)})
     x = int(loads(response.text)["x"])
     beta = (pow(r, e, N) * (u - x)) % N
-    response = session.post('http://192.168.16.128:8000/api/auth/sign', json={"a": "2020-11-28", "alpha": str(alpha), "beta": str(beta)})
+    response = session.post('{}/api/auth/sign'.format(address), json={"a": "2020-11-28", "alpha": str(alpha), "beta": str(beta)})
     sig = loads(response.text)
     beta_ = int(sig["beta_invert"])
     T = int(sig["t"])
@@ -44,7 +81,7 @@ def main():
         * bytes_to_long(sha256(m).digest()) 
         * pow(r*r_p, 2 * e - 2, N) 
         * ((c*c + 1) ** 2)) % N
-    response = session.post('http://192.168.16.128:8000/verify', json={"a": "2020-11-28","c": str(c), "s": str(s), "m": "test message"})
+    response = session.post('{}/verify'.format(address), json={"a": "2020-11-28","c": str(c), "s": str(s), "m": m})
     print(response)
     print(response.text)
     print("s^e={}".format(pow(s, e, N)))
