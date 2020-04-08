@@ -1,6 +1,9 @@
 use crate::models::Ballot;
 use std::fs::{File};
 use std::io::Read;
+use actix_web::{
+  HttpResponse, Responder, HttpRequest
+};
 
 lazy_static::lazy_static! {
   pub static ref BALLOT_FILE: String = std::env::var("BALLOT").unwrap();
@@ -17,4 +20,8 @@ lazy_static::lazy_static! {
     let ballot: Ballot = toml::from_str(&s).unwrap();
     ballot
   };
+}
+
+pub fn display_ballot(_req: HttpRequest) -> impl Responder {
+  HttpResponse::Ok().body(serde_json::to_string(&&*BALLOT).unwrap())
 }
