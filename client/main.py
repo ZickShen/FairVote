@@ -45,7 +45,22 @@ def main():
                 ],
             },
         ]
-    candidates = prompt(questions)
+    voted = False
+    while not voted:
+        candidates = prompt(questions)
+        confirm = [
+            {
+                'type': 'list',
+                'name': 'confirm',
+                'message': 'There are condidate(s) you\'ve choosen: {}.\nDid you choose right?'.format(" ".join(candidates["candidates"])),
+                'choices': [
+                    "yes",
+                    "no",
+                ],
+            }
+        ]
+        confirm = prompt(confirm)
+        voted = confirm["confirm"] == "yes"
     m = dumps(candidates).encode()
 
     response = session.get('{}/public_key'.format(address))
