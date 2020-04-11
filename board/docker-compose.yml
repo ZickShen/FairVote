@@ -1,0 +1,10 @@
+version: '3'
+
+services:
+  web:
+    image: nginx:alpine
+    restart: always
+    volumes:
+      - ./static:/usr/share/nginx/html:ro
+    ports:
+      - 8080:80
