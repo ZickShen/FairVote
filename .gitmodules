@@ -1,3 +1,6 @@
 [submodule "pbs_rsa"]
 	path = pbs_rsa
 	url = git@github.com-zickshen:ZickShen/pbs_rsa.git
+[submodule "mixnet-docker"]
+	path = mixnet-docker
+	url = git@github.com-zickshen:ZickShen/mixnet-docker.git
