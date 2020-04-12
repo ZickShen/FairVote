@@ -2,7 +2,8 @@
 members = [
     "server",
     "gen_key",
-    "encrypt"
+    "clerk",
+    "client/encrypt"
 ]
 
 [package]
