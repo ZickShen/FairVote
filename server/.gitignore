@@ -7,3 +7,4 @@
 *.toml
 !Cargo.toml
 !diesel.toml
+pub.key
