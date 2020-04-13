@@ -62,7 +62,8 @@ fn main() -> std::io::Result<()> {
                     .max_age(3600),
             )
             .service(web::resource("/ping").to(ping))
-            .service(web::resource("/public_key").to(signature::public_key))
+            .service(web::resource("/sign_public_key").to(signature::public_key))
+            .service(web::resource("/encrypt_public_key").to(public_key))
             .service(web::resource("/ballot").to(ballot::display_ballot))
             .service(web::resource("/verify")
                             .route(web::post().to(signature::verify)))
@@ -104,4 +105,8 @@ fn main() -> std::io::Result<()> {
     .expect("Cannot bind to 0.0.0.0:8000")
     .workers(1)
     .run()
+}
+
+fn public_key(_req: HttpRequest) -> impl Responder {
+    HttpResponse::Ok().body(&*keys::ENC_PUBLIC_KEY)
 }
