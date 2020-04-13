@@ -7,8 +7,13 @@ from gmpy2 import gcd, invert
 from json import loads, dumps
 import uuid
 from PyInquirer import prompt, print_json
+from pwn import process, remote, log#!/usr/bin python3
+from ctypes import cdll
+from ctypes import c_char_p
+from ctypes import *
 
 def main():
+    lib = cdll.LoadLibrary("../target/release/libencrypt.so")
     session = requests.Session()
     questions = [
         {
@@ -21,7 +26,6 @@ def main():
 
     response = session.get('{}/ballot'.format(address))
     ballot = loads(response.text)
-    print(ballot)
     m = b"test message"
     if ballot["multiple"]:
         questions = [
@@ -61,13 +65,20 @@ def main():
         ]
         confirm = prompt(confirm)
         voted = confirm["confirm"] == "yes"
-    m = dumps(candidates).encode()
+    m = dumps(candidates)
+    m_bytes = m.encode()
 
-    response = session.get('{}/public_key'.format(address))
+    response = session.get('{}/sign_public_key'.format(address))
     pubkey = loads(response.text)
     N = int(pubkey["n"])
     e = int(pubkey["e"])
     response = session.post('{}/api/auth/register'.format(address), json={"username": str(uuid.uuid1()), "password": "1testt"})
+
+    response = session.get('{}/encrypt_public_key'.format(address))
+    encpubkey = response.text.encode()
+    result = lib.encrypt(c_char_p(encpubkey), c_char_p(m_bytes))
+    m_bytes = cast(result, c_char_p).value
+    m = m_bytes.decode('utf-8')
 
     a = b"2020-11-28"
     r = N
@@ -80,7 +91,7 @@ def main():
     while gcd(u, N) != 1 :
         u = random.randint(1, N)
     alpha = (pow(((r**3)*r_p),e, N) # (r^3r')^e
-            * bytes_to_long(sha256(m).digest()) #h(m) 
+            * bytes_to_long(sha256(m_bytes).digest()) #h(m) 
             * (u**2 + 1)) % N
     response = session.post('{}/api/auth/pre_sign'.format(address), json={"a": "2020-11-28", "alpha": str(alpha)})
     x = int(loads(response.text)["x"])
@@ -92,19 +103,25 @@ def main():
     c = ((u * x + 1) * invert(u-x, N)) % N
     s = (T 
         * bytes_to_long(sha256(a).digest()) 
-        * bytes_to_long(sha256(m).digest())
-        * bytes_to_long(sha256(m).digest()) 
+        * bytes_to_long(sha256(m_bytes).digest())
+        * bytes_to_long(sha256(m_bytes).digest()) 
         * pow(r*r_p, 2 * e - 2, N) 
         * ((c*c + 1) ** 2)) % N
     response = session.post('{}/verify'.format(address), json={"a": "2020-11-28","c": str(c), "s": str(s), "m": m})
+    with open("tmp", "w") as f:
+        f.write(dumps({"a": "2020-11-28","c": str(c), "s": str(s), "m": m}))
     print(response)
     print(response.text)
-    print("s^e={}".format(pow(s, e, N)))
-    print("h(a)h(m)^2(c^2+1)^2={}".format(
-        bytes_to_long(sha256(a).digest())
-        * (bytes_to_long(sha256(m).digest()) ** 2)
-        * ((c ** 2 + 1) ** 2)
-        % N))
+    # print("s^e={}".format(pow(s, e, N)))
+    # print("h(a)h(m)^2(c^2+1)^2={}".format(
+    #     bytes_to_long(sha256(a).digest())
+    #     * (bytes_to_long(sha256(m_bytes).digest()) ** 2)
+    #     * ((c ** 2 + 1) ** 2)
+    #     % N))
+    log.info("Voting, please waiting")
+    r = process("./vote-agent -c ./config.toml -s echo -i tmp", shell=True)
+    _ = r.recvall()
+    log.success("Voting sucess")
 
 if __name__ == "__main__":
     main()
