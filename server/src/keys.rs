@@ -1,5 +1,5 @@
-use pbs_rsa::{PublicKey, PrivateKey};
-use std::fs::{File};
+use pbs_rsa::{PrivateKey, PublicKey};
+use std::fs::File;
 use std::io::Read;
 
 lazy_static::lazy_static! {
@@ -10,7 +10,7 @@ lazy_static::lazy_static! {
     PrivateKey::new(&mut rng, bits).unwrap()
   };
   pub static ref PUBLIC_KEY: PublicKey = PublicKey::from(&*PRIVATE_KEY);
-  
+
   pub static ref PUBLIC_FILE: String = std::env::var("ENC_PUBLIC").unwrap();
   pub static ref ENC_PUBLIC_KEY: String = {
     let mut file = match File::open(&*PUBLIC_FILE) {
@@ -25,5 +25,4 @@ lazy_static::lazy_static! {
     s
   };
 }
-lazy_static::lazy_static! {
-}
+lazy_static::lazy_static! {}

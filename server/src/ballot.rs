@@ -1,9 +1,7 @@
 use crate::models::Ballot;
-use std::fs::{File};
+use actix_web::{HttpRequest, HttpResponse, Responder};
+use std::fs::File;
 use std::io::Read;
-use actix_web::{
-  HttpResponse, Responder, HttpRequest
-};
 
 lazy_static::lazy_static! {
   pub static ref BALLOT_FILE: String = std::env::var("BALLOT").unwrap();

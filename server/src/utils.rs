@@ -7,15 +7,15 @@ lazy_static::lazy_static! {
 
 // WARNING THIS IS ONLY FOR DEMO PLEASE DO MORE RESEARCH FOR PRODUCTION USE
 pub fn hash(password: &str) -> Result<String, ServiceError> {
-    hash_password(password, SECRET_KEY.as_bytes(), 12).map_err(|err| {
-        dbg!(err);
-        ServiceError::InternalServerError
-    })
+  hash_password(password, SECRET_KEY.as_bytes(), 12).map_err(|err| {
+    dbg!(err);
+    ServiceError::InternalServerError
+  })
 }
 
 pub fn verify(hash: &str, password: &str) -> Result<bool, ServiceError> {
-    verify_password(password, hash, SECRET_KEY.as_bytes()).map_err(|err| {
-        dbg!(err);
-        ServiceError::Unauthorized
-    })
+  verify_password(password, hash, SECRET_KEY.as_bytes()).map_err(|err| {
+    dbg!(err);
+    ServiceError::Unauthorized
+  })
 }
