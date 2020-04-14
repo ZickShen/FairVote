@@ -1,11 +1,14 @@
-
 #[macro_use]
 extern crate serde_derive;
-use std::collections::HashMap;
 use pbs_rsa::PublicKey;
-#[macro_use] extern crate prettytable;
-use prettytable::{Table};
+use std::collections::HashMap;
+use threshold_crypto::PublicKeySet;
+#[macro_use]
+extern crate prettytable;
 use num_bigint_dig::BigUint;
+use prettytable::Table;
+use std::fs::File;
+use std::io::Read;
 use std::str::FromStr;
 
 #[derive(Debug, Serialize, Deserialize)]
@@ -20,15 +23,21 @@ pub struct Signature {
     pub s: String,
 }
 
+lazy_static::lazy_static! {
+  pub static ref PUBLIC_FILE: String = std::env::var("ENC_PUBLIC").unwrap();
+}
+
 #[tokio::main]
 async fn main() -> Result<(), reqwest::Error> {
+  dotenv::dotenv().ok();
     let mut stat = HashMap::new();
     let mut statistics = Table::new();
-    let public_key = reqwest::get("http://192.168.16.128:8000/public_key")
+    let public_key = reqwest::get("http://192.168.16.128:8000/sign_public_key")
         .await?
         .text()
         .await?;
     let public_key = parse_public_key(public_key);
+    let public_keyset = parse_public_keyset(&*PUBLIC_FILE);
     let mut unsigned_votes = Table::new();
     unsigned_votes.add_row(row!["Unsigned Votes"]);
     let table = reqwest::get("http://192.168.16.128:8080/")
@@ -43,11 +52,11 @@ async fn main() -> Result<(), reqwest::Error> {
         let m = row.get("m").unwrap().to_string();
         let c = row.get("c").unwrap().to_string();
         let s = row.get("s").unwrap().to_string();
-        let signature = Signature{
-            a:  a.clone(),
-            m:  m.clone(),
-            c:  c.clone(),
-            s:  s.clone(),
+        let signature = Signature {
+            a: a.clone(),
+            m: m.clone(),
+            c: c.clone(),
+            s: s.clone(),
         };
         if verify(signature, &public_key) {
             for candidate in vote.candidates {
@@ -55,7 +64,13 @@ async fn main() -> Result<(), reqwest::Error> {
                 *entry += 1;
             }
         } else {
-            unsigned_votes.add_row(row![format!("common massage: {}\nvotes: {}\nsignature-c: {}...\nsignature-s: {}...", a, m, &c[..30], &s[..30])]);
+            unsigned_votes.add_row(row![format!(
+                "common massage: {}\nvotes: {}\nsignature-c: {}...\nsignature-s: {}...",
+                a,
+                m,
+                &c[..30],
+                &s[..30]
+            )]);
         }
     }
     statistics.add_row(row!["candidate", "amount"]);
@@ -67,17 +82,17 @@ async fn main() -> Result<(), reqwest::Error> {
     Ok(())
 }
 
-fn verify(signature: Signature, public_key: &PublicKey) -> bool{
+fn verify(signature: Signature, public_key: &PublicKey) -> bool {
     let message = signature.m.clone();
-  let signature = pbs_rsa::Signature {
-      a: signature.a.clone(),
-      c: BigUint::from_str(&signature.c).unwrap(),
-      s: BigUint::from_str(&signature.s).unwrap(),
-  };
-  match public_key.verify(message, &signature) {
-    Ok(_) => true,
-    Err(_) => false
-  }
+    let signature = pbs_rsa::Signature {
+        a: signature.a.clone(),
+        c: BigUint::from_str(&signature.c).unwrap(),
+        s: BigUint::from_str(&signature.s).unwrap(),
+    };
+    match public_key.verify(message, &signature) {
+        Ok(_) => true,
+        Err(_) => false,
+    }
 }
 
 fn parse_public_key(json: String) -> PublicKey {
@@ -90,4 +105,21 @@ fn parse_public_key(json: String) -> PublicKey {
     let n = BigUint::from_str(&public_key.n).unwrap();
     let e = BigUint::from_str(&public_key.e).unwrap();
     PublicKey::new(n, e).unwrap()
+}
+
+fn parse_public_keyset(path: &String) -> PublicKeySet {
+    let mut file = match File::open(path) {
+        Ok(f) => f,
+        Err(e) => panic!(
+            "Error occurred opening file: {} - Err: {}",
+            &*PUBLIC_FILE, e
+        ),
+    };
+    let mut s = String::new();
+    match file.read_to_string(&mut s) {
+        Ok(s) => s,
+        Err(e) => panic!("Error Reading file: {}", e),
+    };
+    let public_key: PublicKeySet = serde_json::from_str(&s).unwrap();
+    public_key
 }
