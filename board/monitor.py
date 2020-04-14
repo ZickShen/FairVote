@@ -10,7 +10,7 @@ from Crypto.Util.number import bytes_to_long
 
 class ItemTable(Table):
     a = Col('a')
-    m = Col('m')
+    m = Col('m',column_html_attrs = {"style" : "word-break:break-all;"})
     c = Col("c",column_html_attrs = {"style" : "word-break:break-all;"})
     s = Col("s",column_html_attrs = {"style" : "word-break:break-all;"})
 
