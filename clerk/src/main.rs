@@ -2,7 +2,7 @@
 extern crate serde_derive;
 use pbs_rsa::PublicKey;
 use std::collections::HashMap;
-use threshold_crypto::{PublicKeySet, Ciphertext, SecretKeyShare};
+use threshold_crypto::{Ciphertext, PublicKeySet, SecretKeyShare};
 #[macro_use]
 extern crate prettytable;
 use num_bigint_dig::BigUint;
@@ -11,7 +11,7 @@ use std::fs::File;
 use std::str::FromStr;
 
 mod decrypt;
-use decrypt::{Actor, SecretSociety, send_msg};
+use decrypt::{send_msg, Actor, SecretSociety};
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct Candidates {
@@ -83,7 +83,7 @@ async fn main() -> Result<(), reqwest::Error> {
         meeting.accept_decryption_share(society.get_actor(id));
       }
       let res = meeting.decrypt_message().unwrap();
-      let vote = match std::str::from_utf8(&res){
+      let vote = match std::str::from_utf8(&res) {
         Ok(v) => v,
         Err(_) => {
           add_failed_vote(&mut decrypt_failed_votes, &a, &m, &c, &s);
@@ -140,16 +140,13 @@ fn parse_public_key(json: String) -> PublicKey {
   PublicKey::new(n, e).unwrap()
 }
 
-
 fn parse_key_file<T>(path: &String) -> T
-  where T: serde::de::DeserializeOwned
-  {
+where
+  T: serde::de::DeserializeOwned,
+{
   let file = match File::open(path) {
     Ok(f) => f,
-    Err(e) => panic!(
-      "Error occurred opening file: {} - Err: {}",
-      path, e
-    ),
+    Err(e) => panic!("Error occurred opening file: {} - Err: {}", path, e),
   };
   let reader = std::io::BufReader::new(file);
   let public_key: T = serde_json::from_reader(reader).unwrap();
@@ -174,9 +171,6 @@ fn add_failed_vote(table: &mut Table, a: &String, m: &String, c: &String, s: &St
   };
   table.add_row(row![format!(
     "common massage: {}\nvotes: {}\nsignature-c: {}\nsignature-s: {}",
-    a,
-    m,
-    c,
-    s
+    a, m, c, s
   )]);
 }
