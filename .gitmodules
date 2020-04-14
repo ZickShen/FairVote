@@ -4,3 +4,6 @@
 [submodule "mixnet-docker"]
 	path = mixnet-docker
 	url = git@github.com-zickshen:ZickShen/mixnet-docker.git
+[submodule "vote-agent"]
+	path = vote-agent
+	url = git@github.com-zickshen:ZickShen/vote-agent.git
