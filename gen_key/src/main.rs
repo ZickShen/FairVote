@@ -5,9 +5,8 @@ use std::{
 use threshold_crypto::{serde_impl::SerdeSecret, SecretKeySet};
 
 lazy_static::lazy_static! {
-    pub static ref THRESHOLD_STR: String = std::env::var("THRESHOLD").unwrap();
-    pub static ref ACTOR_STR: String = std::env::var("ACTOR").unwrap();
-
+  pub static ref THRESHOLD_STR: String = std::env::var("THRESHOLD").unwrap();
+  pub static ref ACTOR_STR: String = std::env::var("ACTOR").unwrap();
 }
 fn main() {
   dotenv::dotenv().ok();
