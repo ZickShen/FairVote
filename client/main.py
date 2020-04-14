@@ -7,13 +7,17 @@ from gmpy2 import gcd, invert
 from json import loads, dumps
 import uuid
 from PyInquirer import prompt, print_json
-from pwn import process, remote, log#!/usr/bin python3
 from ctypes import cdll
 from ctypes import c_char_p
 from ctypes import *
 
+class go_string(Structure):
+    _fields_ = [
+        ("p", c_char_p),
+        ("n", c_int)]
+
 def main():
-    lib = cdll.LoadLibrary("../target/release/libencrypt.so")
+    libencrypt = cdll.LoadLibrary("../target/release/libencrypt.so")
     session = requests.Session()
     questions = [
         {
@@ -76,7 +80,7 @@ def main():
 
     response = session.get('{}/encrypt_public_key'.format(address))
     encpubkey = response.text.encode()
-    result = lib.encrypt(c_char_p(encpubkey), c_char_p(m_bytes))
+    result = libencrypt.encrypt(c_char_p(encpubkey), c_char_p(m_bytes))
     m_bytes = cast(result, c_char_p).value
     m = m_bytes.decode('utf-8')
 
@@ -118,10 +122,13 @@ def main():
     #     * (bytes_to_long(sha256(m_bytes).digest()) ** 2)
     #     * ((c ** 2 + 1) ** 2)
     #     % N))
-    log.info("Voting, please waiting")
-    r = process("./vote-agent -c ./config.toml -s echo -i tmp", shell=True)
-    _ = r.recvall()
-    log.success("Voting sucess")
+    vote_agent = cdll.LoadLibrary("./vote-agent.so")
+    vote_agent.Vote.argtyps = [go_string, go_string, go_string]
+    vote_agent.Vote.restype = None
+    config = go_string(c_char_p(b'./config.toml'), len('./config.toml'))
+    service = go_string(c_char_p(b'echo'), 4)
+    signature = go_string(c_char_p(b'tmp'), 3)
+    vote_agent.Vote(config, service, signature)
 
 if __name__ == "__main__":
     main()
