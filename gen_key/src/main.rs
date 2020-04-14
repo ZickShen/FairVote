@@ -19,6 +19,14 @@ fn main() {
     let mut rng = rand::thread_rng();
     let sks = SecretKeySet::random(threshold, &mut rng);
     let pk = sks.public_keys().public_key();
+    let pks = sks.public_keys();
+
+    let public_key_file = File::create("pubset.key").unwrap();
+    let mut writer = BufWriter::new(&public_key_file);
+    match write!(&mut writer, "{}", serde_json::to_string(&pks).unwrap()) {
+        Ok(_)=> (),
+        Err(err)=> panic!(err),
+    };
 
     let public_key_file = File::create("pub.key").unwrap();
     let mut writer = BufWriter::new(&public_key_file);
