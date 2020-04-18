@@ -13,4 +13,4 @@ gmpy2 == 2.0.8
 pycryptodome == 3.9.7
 
 # client/main.py: 2
-requests == 2.18.4
+requests == 2.20.0
