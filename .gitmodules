@@ -1,9 +1,9 @@
 [submodule "pbs_rsa"]
 	path = pbs_rsa
-	url = git@github.com-zickshen:ZickShen/pbs_rsa.git
+	url = git@github.com:ZickShen/pbs_rsa.git
 [submodule "mixnet-docker"]
 	path = mixnet-docker
-	url = git@github.com-zickshen:ZickShen/mixnet-docker.git
+	url = git@github.com:ZickShen/mixnet-docker.git
 [submodule "vote-agent"]
 	path = vote-agent
-	url = git@github.com-zickshen:ZickShen/vote-agent.git
+	url = git@github.com:ZickShen/vote-agent.git
